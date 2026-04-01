@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 3 — Mutations & Pedigrees</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;900&family=Nunito:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--purple:#5535A3;--purple2:#6644b8;--purple-lt:#EDE7F6;--purple-xlt:#F8F5FF;--green:#1A6B3C;--green-lt:#E6F4EA;--red:#9B1C1C;--red-lt:#FFF0F0;--navy:#1B3A6B;--teal:#0B6E6E;--orange:#B84F00;--orange-lt:#FFF0E5;--ink:#0F1B2D;--muted:#6B7280;--border:#D1D9E6;--bg:#F5F2FC;--correct:#1A6B3C;--correct-lt:#E6F4EA;--wrong:#9B1C1C;--wrong-lt:#FFF0F0;--shadow:0 2px 16px rgba(85,53,163,.12)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+.banner{background:linear-gradient(90deg,var(--purple),#7755cc);text-align:center;padding:7px;font-size:13px;font-weight:700;color:#fff}
+.nav{background:var(--purple);padding:0 20px;position:sticky;top:0;z-index:100;display:flex;align-items:center;box-shadow:0 2px 12px rgba(0,0,0,.2);overflow-x:auto}
+.nav a{color:rgba(255,255,255,.7);text-decoration:none;font-size:13px;font-weight:700;padding:14px 14px;display:block;transition:all .15s;white-space:nowrap}
+.nav a:hover{color:#fff;background:rgba(255,255,255,.1)}
+.nav .brand{font-family:'Unbounded',sans-serif;font-size:12px;font-weight:900;color:#fff;padding:14px 18px 14px 0;border-right:1px solid rgba(255,255,255,.2);margin-right:4px;white-space:nowrap}
+.hero{background:var(--purple);padding:52px 24px 44px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 60% 70% at 80% 30%,#7040c0,transparent),radial-gradient(ellipse 40% 60% at 5% 85%,#250f55,transparent);pointer-events:none}
+.hero-inner{max-width:860px;margin:0 auto;position:relative}
+.hero-tag{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#C4AEFF;margin-bottom:14px}
+.hero h1{font-family:'Unbounded',sans-serif;font-size:clamp(24px,4.5vw,44px);font-weight:900;color:#fff;line-height:1.15;margin-bottom:14px}
+.hero h1 em{color:#F9D954;font-style:normal}
+.hero-sub{font-size:15px;color:#C4AEFF;max-width:560px;line-height:1.6;margin-bottom:28px}
+.pills{display:flex;gap:8px;flex-wrap:wrap}
+.pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:6px 14px;font-size:12px;color:#D8C8FF;display:flex;align-items:center;gap:6px}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:#F9D954}
+.wrap{max-width:860px;margin:0 auto;padding:40px 24px 80px}
+.sec{margin-bottom:56px}
+.sec-hdr{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.sec-num{width:38px;height:38px;border-radius:50%;background:var(--purple);color:#fff;font-family:'Unbounded',sans-serif;font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sec-title{font-family:'Unbounded',sans-serif;font-size:19px;font-weight:900;color:var(--purple);line-height:1.2}
+.sec-sub{font-size:13px;color:var(--muted);margin-top:2px}
+.card{background:#fff;border-radius:16px;padding:28px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:20px}
+.card h3{font-family:'Unbounded',sans-serif;font-size:16px;font-weight:900;margin-bottom:14px}
+.card p{font-size:14.5px;line-height:1.75;color:#374151;margin-bottom:14px}
+.card p:last-child{margin-bottom:0}
+.key{font-weight:700;color:var(--purple);background:var(--purple-xlt);padding:1px 5px;border-radius:3px}
+.callout{background:var(--purple-lt);border-left:3px solid var(--purple);border-radius:0 8px 8px 0;padding:12px 16px;margin:14px 0;font-size:14px;color:var(--purple)}
+.callout strong{display:block;margin-bottom:4px}
+.type-tag{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-right:6px;text-transform:uppercase;letter-spacing:.5px}
+.tt-gene{background:#EDE7F6;color:var(--purple)}
+.tt-chr{background:#FFF0E5;color:var(--orange)}
+.tt-soma{background:#E6F4EA;color:var(--green)}
+.tt-germ{background:var(--red-lt);color:var(--red)}
+/* mutation table */
+.mut-table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0}
+.mut-table th{background:var(--purple);color:#fff;padding:10px 12px;text-align:left;font-weight:700}
+.mut-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+.mut-table tr:nth-child(even) td{background:var(--purple-xlt)}
+/* pedigree builder */
+.ped-wrap{background:#fff;border-radius:16px;padding:28px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:20px}
+.ped-wrap h4{font-family:'Unbounded',sans-serif;font-size:15px;font-weight:900;color:var(--purple);margin-bottom:8px}
+.ped-wrap p{font-size:14px;color:var(--muted);margin-bottom:16px}
+.ped-key{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px;padding:14px;background:var(--purple-xlt);border-radius:10px}
+.pk-item{display:flex;align-items:center;gap:8px;font-size:13px}
+.pk-sq{width:20px;height:20px;border:2px solid var(--purple);border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+.pk-ci{width:20px;height:20px;border:2px solid var(--purple);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+.pedigree-svg{width:100%;max-width:600px;display:block;margin:0 auto}
+.ped-quiz{margin-top:20px;background:var(--purple-xlt);border-radius:10px;padding:16px}
+.ped-quiz h5{font-family:'Unbounded',sans-serif;font-size:13px;color:var(--purple);margin-bottom:12px}
+.ped-q{margin-bottom:14px}
+.ped-q p{font-size:14px;font-weight:600;margin-bottom:8px}
+.ped-opts{display:flex;flex-direction:column;gap:6px}
+.ped-opt{padding:9px 14px;border-radius:8px;border:2px solid var(--border);cursor:pointer;font-size:13.5px;background:#fff;text-align:left;transition:all .15s}
+.ped-opt:hover:not(.locked){border-color:var(--purple);background:var(--purple-lt)}
+.ped-opt.correct{border-color:var(--correct);background:var(--correct-lt);color:var(--correct);cursor:default}
+.ped-opt.wrong{border-color:var(--wrong);background:var(--wrong-lt);color:var(--wrong);cursor:default}
+.ped-opt.locked{cursor:default}
+.ped-fb{font-size:13px;padding:8px 12px;border-radius:8px;margin-top:8px;display:none}
+.ped-fb.show{display:block}
+.ped-fb.correct{background:var(--correct-lt);color:var(--correct)}
+.ped-fb.wrong{background:var(--wrong-lt);color:var(--wrong)}
+/* MCQ */
+.mcq-card{background:#fff;border-radius:16px;padding:28px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:16px}
+.mcq-q{font-size:15px;font-weight:700;margin-bottom:18px;line-height:1.5}
+.mcq-q .qn{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--purple);color:#fff;padding:2px 8px;border-radius:4px;margin-right:8px}
+.mcq-opts{display:flex;flex-direction:column;gap:8px}
+.opt{padding:12px 16px;border-radius:10px;border:2px solid var(--border);cursor:pointer;font-size:14px;transition:all .15s;background:#fff;display:flex;align-items:flex-start;gap:10px;text-align:left;width:100%}
+.opt:hover:not(.locked){border-color:var(--purple);background:var(--purple-xlt)}
+.opt .ltr{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--muted);flex-shrink:0;margin-top:1px;min-width:18px}
+.opt.correct{border-color:var(--correct);background:var(--correct-lt)}.opt.correct .ltr{color:var(--correct)}
+.opt.wrong{border-color:var(--wrong);background:var(--wrong-lt)}.opt.wrong .ltr{color:var(--wrong)}
+.opt.locked{cursor:default}
+.fb{margin-top:14px;padding:12px 16px;border-radius:10px;font-size:13.5px;line-height:1.6;display:none}
+.fb.show{display:block}
+.fb.correct{background:var(--correct-lt);border:1px solid #86EFAC;color:var(--correct)}
+.fb.wrong{background:var(--wrong-lt);border:1px solid #FCA5A5;color:var(--wrong)}
+.fb-h{font-weight:700;margin-bottom:6px}
+/* flashcards */
+.fc-progress{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
+.fc-dot{width:12px;height:12px;border-radius:50%;background:var(--border);transition:background .3s}
+.fc-dot.known{background:var(--correct)}.fc-dot.studying{background:#F59E0B}
+.flashcard{perspective:1000px;height:200px;cursor:pointer;margin-bottom:16px}
+.fc-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.flashcard.flipped .fc-inner{transform:rotateY(180deg)}
+.fc-front,.fc-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;box-shadow:var(--shadow)}
+.fc-front{background:var(--purple);color:#fff}
+.fc-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#C4AEFF;margin-bottom:12px}
+.fc-term{font-family:'Unbounded',sans-serif;font-size:20px;font-weight:900;line-height:1.2}
+.fc-back{background:#fff;border:2px solid var(--border);transform:rotateY(180deg)}
+.fc-def{font-size:14px;color:var(--ink);line-height:1.6}
+.fc-ex{font-size:12.5px;color:var(--muted);margin-top:8px;font-style:italic}
+.fc-hint{font-size:12px;text-align:center;color:var(--muted);margin-bottom:16px}
+.fc-acts{display:flex;gap:10px;justify-content:center;margin-top:12px}
+.fc-btn{padding:10px 24px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer}
+.fc-btn.got{background:var(--correct);color:#fff}
+.fc-btn.again{background:#FEF3C7;color:#92400E;border:1px solid #FCD34D}
+.fc-ct{text-align:center;font-size:13px;color:var(--muted);margin-top:10px}
+.fc-done{background:#fff;border-radius:16px;padding:40px;text-align:center;box-shadow:var(--shadow);display:none}
+.fc-done h3{font-family:'Unbounded',sans-serif;font-size:20px;color:var(--purple);margin-bottom:8px}
+.fc-done p{color:var(--muted);margin-bottom:20px}
+.fc-restart{padding:12px 28px;background:var(--purple);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
+.sum{background:linear-gradient(135deg,var(--purple),#6644b8);border-radius:16px;padding:32px;color:#fff;margin-bottom:20px}
+.sum h3{font-family:'Unbounded',sans-serif;font-size:17px;margin-bottom:16px;line-height:1.3}
+.sum-g{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.sum-g{grid-template-columns:1fr}}
+.si{background:rgba(255,255,255,.1);border-radius:10px;padding:14px 16px;font-size:13.5px;color:#D8C8FF;line-height:1.5}
+.si strong{display:block;color:#fff;margin-bottom:4px;font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="banner">🗓️ Unit 5 Assessment: <strong>April 8</strong> — <span id="dl"></span> days away. Use this page to complete your student handout!</div>
+
+<nav class="nav">
+  <div class="brand">Unit 5 · L3</div>
+  <a href="#reading">📖 Reading</a>
+  <a href="#check">✅ Check</a>
+  <a href="#pedigrees">🌳 Pedigrees</a>
+  <a href="#cards">🃏 Flashcards</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">MYP Biology · Unit 5 · Lesson 3 of 4</div>
+    <h1>Mutations &<br><em>Pedigrees</em></h1>
+    <p class="hero-sub">Every mutation in history started as one change in DNA. Pedigrees let us trace those changes through families. Use this page alongside your student handout.</p>
+    <div class="pills">
+      <div class="pill"><div class="dot"></div>Types of mutations</div>
+      <div class="pill"><div class="dot"></div>Somatic vs. germ line</div>
+      <div class="pill"><div class="dot"></div>How to read pedigrees</div>
+      <div class="pill"><div class="dot"></div>Identifying inheritance patterns</div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ① READING -->
+<div class="sec" id="reading">
+  <div class="sec-hdr">
+    <div class="sec-num">1</div>
+    <div><div class="sec-title">The Reading</div><div class="sec-sub">Read carefully — comprehension questions follow</div></div>
+  </div>
+
+  <div class="card">
+    <h3 style="color:var(--purple)">🧬 What Is a Mutation?</h3>
+    <p>A <span class="key">mutation</span> is any permanent change in the DNA sequence — a change in the order of nucleotide bases. Mutations can arise from mistakes during DNA replication, exposure to <span class="key">mutagens</span> (radiation, UV light, cigarette smoke), or viral infections. Importantly, not all mutations are harmful — many are neutral or even beneficial, and mutations are the engine of evolution.</p>
+
+    <p>The most critical question about any mutation is: <strong>where did it occur?</strong></p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0">
+      <div style="background:var(--green-lt);border-left:4px solid var(--green);padding:14px;border-radius:0 10px 10px 0">
+        <strong style="color:var(--green);display:block;margin-bottom:6px">Somatic Cell Mutations</strong>
+        <span style="font-size:14px">Occur in body cells. Passed on by mitosis within that individual. Can cause cancer. <strong>Cannot be inherited by offspring</strong> — these cells never become eggs or sperm.</span>
+      </div>
+      <div style="background:var(--red-lt);border-left:4px solid var(--red);padding:14px;border-radius:0 10px 10px 0">
+        <strong style="color:var(--red);display:block;margin-bottom:6px">Germ Line Mutations</strong>
+        <span style="font-size:14px">Occur in cells that produce gametes. Passed on by meiosis. <strong>Can be inherited</strong> — every cell in the offspring will carry the mutation. This is how genetic disorders are passed to children.</span>
+      </div>
+    </div>
+
+    <h3 style="color:var(--purple);margin-top:20px">📊 Types of Mutations</h3>
+    <p>Mutations fall into two main categories — <span class="key">gene mutations</span> that affect a single gene, and <span class="key">chromosome mutations</span> that affect large segments or the number of chromosomes.</p>
+    <table class="mut-table">
+      <tr><th>Type</th><th>What Changes</th><th>Example</th><th>Impact</th></tr>
+      <tr><td><span class="type-tag tt-gene">Gene</span>Point mutation</td><td>ONE nucleotide swapped for another (substitution)</td><td>GAG → GUG causes sickle cell anemia</td><td>May be silent, change one amino acid, or cause early stop</td></tr>
+      <tr><td><span class="type-tag tt-gene">Gene</span>Frameshift (insertion)</td><td>Extra nucleotide(s) added</td><td>ATTACC → ACTTACC</td><td>Shifts ALL codons downstream — usually non-functional protein</td></tr>
+      <tr><td><span class="type-tag tt-gene">Gene</span>Frameshift (deletion)</td><td>Nucleotide(s) removed</td><td>ATTACC → ATACC</td><td>Same as insertion — all codons downstream are wrong</td></tr>
+      <tr><td><span class="type-tag tt-chr">Chromosome</span>Nondisjunction</td><td>Chromosomes fail to separate in meiosis</td><td>Trisomy 21 = Down syndrome</td><td>Wrong chromosome number in gametes → offspring</td></tr>
+      <tr><td><span class="type-tag tt-chr">Chromosome</span>Translocation</td><td>Segment moves to non-homologous chromosome</td><td>Some leukemia types</td><td>Abnormal gene expression</td></tr>
+    </table>
+
+    <div class="callout"><strong>Frameshift vs. Point Mutation — Why frameshifts are usually worse:</strong>A point mutation (substitution) changes ONE codon — it might change one amino acid, or might be silent. A frameshift shifts the ENTIRE reading frame from the mutation site forward — like removing a letter from "THE CAT SAT" → "TEC ATS AT..." — complete nonsense downstream. Usually produces a non-functional or truncated protein.</div>
+  </div>
+
+  <div class="card">
+    <h3 style="color:var(--purple)">🌳 How to Read a Pedigree</h3>
+    <p>A <span class="key">pedigree</span> is a diagram that traces the inheritance of a trait or disease through a family across multiple generations. Doctors and genetic counselors use pedigrees to identify whether a trait is dominant or recessive, autosomal or sex-linked — without sequencing a single gene.</p>
+
+    <div style="background:var(--purple-xlt);border-radius:10px;padding:16px;margin:14px 0">
+      <strong style="font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--purple);display:block;margin-bottom:12px">Pedigree Symbol Key</strong>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13.5px">
+        <div>⬜ Unaffected male</div><div>⬛ Affected male</div>
+        <div>⭕ Unaffected female</div><div>⚫ Affected female</div>
+        <div>⬜—⭕ Mating pair</div><div>| = offspring line</div>
+      </div>
+    </div>
+
+    <p><strong>Step-by-step pattern identification:</strong></p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin:14px 0">
+      <div style="background:#F0F4FF;border-left:4px solid var(--navy);padding:12px 16px;border-radius:0 8px 8px 0"><strong style="color:var(--navy);display:block;margin-bottom:4px">Step 1 — Check sex ratio</strong>Are significantly more males affected than females? → Likely <strong>X-linked</strong>. If roughly equal → autosomal.</div>
+      <div style="background:#F0F4FF;border-left:4px solid var(--navy);padding:12px 16px;border-radius:0 8px 8px 0"><strong style="color:var(--navy);display:block;margin-bottom:4px">Step 2 — Find the key family</strong>Look for two UNAFFECTED parents with an AFFECTED child. → <strong>Autosomal Recessive</strong> (parents are carriers). OR find an AFFECTED parent whose child is UNAFFECTED — could be dominant but not guaranteed dominant to child.</div>
+      <div style="background:#F0F4FF;border-left:4px solid var(--navy);padding:12px 16px;border-radius:0 8px 8px 0"><strong style="color:var(--navy);display:block;margin-bottom:4px">Step 3 — Check for generation skipping</strong>Does the trait skip generations (appears, disappears, reappears)? → Likely <strong>recessive</strong>. Does it appear in EVERY generation? → Likely <strong>dominant</strong>.</div>
+      <div style="background:#F0F4FF;border-left:4px solid var(--navy);padding:12px 16px;border-radius:0 8px 8px 0"><strong style="color:var(--navy);display:block;margin-bottom:4px">Step 4 — Check the X-linked clue</strong>If X-linked recessive: do affected FATHERS have affected SONS? No? → That confirms X-linked (sons get Y from dad, not his X).</div>
+    </div>
+
+    <table class="mut-table">
+      <tr><th>Pattern</th><th>Key Clues</th><th>Real Examples</th></tr>
+      <tr><td><strong>Autosomal Recessive</strong></td><td>Skips generations; both sexes equally affected; unaffected parents can have affected child (both are carriers)</td><td>Cystic fibrosis, Sickle cell, PKU, Tay-Sachs</td></tr>
+      <tr><td><strong>Autosomal Dominant</strong></td><td>Appears every generation; both sexes equally affected; unaffected individuals NEVER have affected children</td><td>Huntington's disease, Achondroplasia (dwarfism)</td></tr>
+      <tr><td><strong>X-linked Recessive</strong></td><td>Many more males affected; skips generations through carrier females; affected fathers do NOT pass to sons</td><td>Hemophilia, Color blindness, Duchenne MD</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ② CHECK -->
+<div class="sec" id="check">
+  <div class="sec-hdr">
+    <div class="sec-num">2</div>
+    <div><div class="sec-title">Check for Understanding</div><div class="sec-sub">Based on the reading — click any answer to see feedback</div></div>
+  </div>
+  <div id="mcq"></div>
+</div>
+
+<!-- ③ PEDIGREES -->
+<div class="sec" id="pedigrees">
+  <div class="sec-hdr">
+    <div class="sec-num">3</div>
+    <div><div class="sec-title">Pedigree Practice</div><div class="sec-sub">Analyze two pedigrees — use the reading as your reference</div></div>
+  </div>
+
+  <div class="ped-wrap">
+    <h4>Pedigree 1 — Identify the Inheritance Pattern</h4>
+    <p>Study this pedigree and answer the questions below.</p>
+    <!-- SVG pedigree 1: autosomal recessive -->
+    <svg class="pedigree-svg" viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg">
+      <!-- Gen I -->
+      <rect x="60" y="20" width="36" height="36" rx="4" fill="white" stroke="#5535A3" stroke-width="2.5"/>
+      <text x="78" y="74" text-anchor="middle" font-size="11" fill="#6B7280" font-family="Nunito">I-1</text>
+      <line x1="96" y1="38" x2="140" y2="38" stroke="#5535A3" stroke-width="2"/>
+      <circle cx="158" cy="38" r="18" fill="white" stroke="#5535A3" stroke-width="2.5"/>
+      <text x="158" y="74" text-anchor="middle" font-size="11" fill="#6B7280" font-family="Nunito">I-2</text>
+      <!-- Gen II -->
+      <line x1="128" y1="38" x2="128" y2="100" stroke="#5535A3" stroke-width="2"/>
+      <line x1="60" y1="100" x2="380" y2="100" stroke="#5535A3" stroke-width="2"/>
+      <!-- II-1 unaffected male -->
+      <rect x="42" y="108" width="36" height="36" rx="4" fill="white" stroke="#5535A3" stroke-width="2.5"/>
+      <text x="60" y="160" text-anchor="middle" font-size="11" fill="#6B7280" font-family="Nunito">II-1</text>
+      <!-- II-2 unaffected female -->
+      <circle cx="168" cy="126" r="18" fill="white" stroke="#5535A3" stroke-width="2.5"/>
+      <text x="168" y="160" text-anchor="middle" font-size="11" fill="#6B7280" font-family="Nunito">II-2</text>
+      <!-- II-3 AFFECTED male -->
+      <rect x="222" y="108" width="36" height="36" rx="4" fill="#5535A3" stroke="#5535A3" stroke-width="2.5"/>
+      <text x="240" y="160" text-anchor="middle" font-size="11" fill="#6B7280" font-family="Nunito">II-3</text>
+      <!-- II-4 unaffected female -->
+      <circle cx="348" cy="126" r="18" fill="white" stroke="#5535A3" stroke-width="2.5"/>
+      <text x="348" y="160" text-anchor="middle" font-size="11" fill="#6B7280" font-family="Nunito">II-4</text>
+      <!-- Gen III connector from II-4 -->
+      <line x1="280" y1="100" x2="280" y2="168" stroke="#5535A3" stroke-width="2"/>
+      <line x1="302" y1="126" x2="330" y2="126" stroke="#5535A3" stroke-width="2"/>
+      <!-- III-1 AFFECTED female (child of II-4 and her partner) -->
+      <line x1="348" y1="144" x2="348" y2="168" stroke="#5535A3" stroke-width="2"/>
+      <circle cx="348" cy="180" r="14" fill="#5535A3" stroke="#5535A3" stroke-width="2.5"/>
+      <text x="348" y="200" text-anchor="middle" font-size="11" fill="#6B7280" font-family="Nunito">III-1</text>
+      <!-- Gen labels -->
+      <text x="16" y="42" font-size="11" fill="#9CA3AF" font-family="Nunito" font-weight="700">I</text>
+      <text x="16" y="132" font-size="11" fill="#9CA3AF" font-family="Nunito" font-weight="700">II</text>
+      <text x="16" y="185" font-size="11" fill="#9CA3AF" font-family="Nunito" font-weight="700">III</text>
+    </svg>
+    <div class="ped-quiz">
+      <h5>Analyze Pedigree 1</h5>
+      <div class="ped-q" id="pq1">
+        <p>Are more males or females affected in this pedigree?</p>
+        <div class="ped-opts">
+          <button class="ped-opt" onclick="pedAns('pq1',0)">More males affected</button>
+          <button class="ped-opt" onclick="pedAns('pq1',1)">More females affected</button>
+          <button class="ped-opt" onclick="pedAns('pq1',2)">Both sexes equally affected</button>
+        </div>
+        <div class="ped-fb" id="pfb1"></div>
+      </div>
+      <div class="ped-q" id="pq2">
+        <p>Generation I parents are both unaffected, yet they have an affected child (II-3). What does this tell you?</p>
+        <div class="ped-opts">
+          <button class="ped-opt" onclick="pedAns('pq2',0)">The trait is autosomal dominant</button>
+          <button class="ped-opt" onclick="pedAns('pq2',1)">The trait is autosomal recessive — both parents are carriers</button>
+          <button class="ped-opt" onclick="pedAns('pq2',2)">The trait is X-linked — the father passed it to his son</button>
+        </div>
+        <div class="ped-fb" id="pfb2"></div>
+      </div>
+      <div class="ped-q" id="pq3">
+        <p>What must be the genotype of the Generation I father (I-1)?</p>
+        <div class="ped-opts">
+          <button class="ped-opt" onclick="pedAns('pq3',0)">RR (homozygous dominant)</button>
+          <button class="ped-opt" onclick="pedAns('pq3',1)">Rr (heterozygous carrier)</button>
+          <button class="ped-opt" onclick="pedAns('pq3',2)">rr (homozygous recessive)</button>
+        </div>
+        <div class="ped-fb" id="pfb3"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ped-wrap">
+    <h4>Pedigree 2 — A Different Pattern</h4>
+    <p>Notice what's different in this family. Use the clues to identify the pattern.</p>
+    <!-- SVG pedigree 2: X-linked recessive -->
+    <svg class="pedigree-svg" viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg">
+      <text x="16" y="42" font-size="11" fill="#9CA3AF" font-family="Nunito" font-weight="700">I</text>
+      <text x="16" y="130" font-size="11" fill="#9CA3AF" font-family="Nunito" font-weight="700">II</text>
+      <text x="16" y="195" font-size="11" fill="#9CA3AF" font-family="Nunito" font-weight="700">III</text>
+      <!-- Gen I: unaffected father, unaffected mother -->
+      <rect x="60" y="20" width="36" height="36" rx="4" fill="white" stroke="#5535A3" stroke-width="2.5"/>
+      <text x="78" y="72" text-anchor="middle" font-size="11" fill="#6B7280" font-family="Nunito">I-1</text>
+      <line x1="96" y1="38" x2="130" y2="38" stroke="#5535A3" stroke-width="2"/>
+      <!-- carrier mother (half filled) -->
+      <circle cx="148" cy="38" r="18" fill="white" stroke="#5535A3" stroke-width="2.5"/>
+      <path d="M148 20 A18 18 0 0 1 148 56 Z" fill="#5535A3"/>
+      <text x="148" y="72" text-anchor="middle" font-size="11" fill="#6B7280" font-family="Nunito">I-2</text>
+      <!-- Gen II -->
+      <line x1="113" y1="38" x2="113" y2="96" stroke="#5535A3" stroke-width="2"/>
+      <line x1="60" y1="96" x2="420" y2="96" stroke="#5535A3" stroke-width="2"/>
+      <!-- II-1 AFFECTED male -->
+      <rect x="42" y="104" width="36" height="36" rx="4" fill="#5535A3" stroke="#5535A3" stroke-width="2.5"/>
+      <text x="60" y="156" text-anchor="middle" font-size="11" fill="#6B7280" font-family="Nunito">II-1</text>
+      <!-- II-2 unaffected female -->
+      <circle cx="152" cy="122" r="18" fill="white" stroke="#5535A3" stroke-width="2.5"/>
+      <text x="152" y="156" text-anchor="middle" font-size="11" fill="#6B7280" font-family="Nunito">II-2</text>
+      <!-- II-3 unaffected male -->
+      <rect x="222" y="104" width="36" height="36" rx="4" fill="white" stroke="#5535A3" stroke-width="2.5"/>
+      <text x="240" y="156" text-anchor="middle" font-size="11" fill="#6B7280" font-family="Nunito">II-3</text>
+      <!-- II-4 unaffected male -->
+      <rect x="402" y="104" width="36" height="36" rx="4" fill="white" stroke="#5535A3" stroke-width="2.5"/>
+      <text x="420" y="156" text-anchor="middle" font-size="11" fill="#6B7280" font-family="Nunito">II-4</text>
+      <!-- Gen III from II-1 (affected) x partner -->
+      <line x1="60" y1="140" x2="60" y2="165" stroke="#5535A3" stroke-width="2"/>
+      <!-- III-1 unaffected male (child of affected father II-1) -->
+      <rect x="42" y="168" width="32" height="32" rx="4" fill="white" stroke="#5535A3" stroke-width="2.5"/>
+      <text x="58" y="210" text-anchor="middle" font-size="11" fill="#6B7280" font-family="Nunito">III-1</text>
+    </svg>
+    <div style="font-size:12.5px;color:var(--muted);margin:8px 0 16px;font-style:italic">Note: Half-filled circle (I-2) = carrier female. Affected males in Generation II. The affected father's son (III-1) is unaffected.</div>
+    <div class="ped-quiz">
+      <h5>Analyze Pedigree 2</h5>
+      <div class="ped-q" id="pq4">
+        <p>Looking at the affected individuals, what is striking about which sex is affected?</p>
+        <div class="ped-opts">
+          <button class="ped-opt" onclick="pedAns('pq4',0)">Only females are affected</button>
+          <button class="ped-opt" onclick="pedAns('pq4',1)">Only males are affected — the female (I-2) is a carrier, not affected</button>
+          <button class="ped-opt" onclick="pedAns('pq4',2)">Both sexes are equally affected</button>
+        </div>
+        <div class="ped-fb" id="pfb4"></div>
+      </div>
+      <div class="ped-q" id="pq5">
+        <p>The affected father (II-1) has a son (III-1) who is unaffected. Why does this rule out autosomal inheritance?</p>
+        <div class="ped-opts">
+          <button class="ped-opt" onclick="pedAns('pq5',0)">It doesn't — autosomal dominant traits can skip generations too</button>
+          <button class="ped-opt" onclick="pedAns('pq5',1)">If it were autosomal, an affected father would have a 50% chance of passing it to a son. But for X-linked, the father passes Y (not X) to his sons — so sons of an affected father cannot inherit the X-linked trait from him</button>
+          <button class="ped-opt" onclick="pedAns('pq5',2)">The son must have gotten a protective mutation that cancelled it out</button>
+        </div>
+        <div class="ped-fb" id="pfb5"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ④ FLASHCARDS -->
+<div class="sec" id="cards">
+  <div class="sec-hdr">
+    <div class="sec-num">4</div>
+    <div><div class="sec-title">Vocabulary Flashcards</div><div class="sec-sub">Mark Got It to clear cards from the deck</div></div>
+  </div>
+  <div>
+    <div class="fc-progress" id="fc-dots"></div>
+    <p class="fc-hint">👆 Click to flip the card</p>
+    <div class="flashcard" id="fc" onclick="flipFC()">
+      <div class="fc-inner">
+        <div class="fc-front"><div class="fc-lbl">Lesson 3 Term</div><div class="fc-term" id="fc-t">—</div></div>
+        <div class="fc-back"><div class="fc-def" id="fc-d"></div><div class="fc-ex" id="fc-e"></div></div>
+      </div>
+    </div>
+    <div class="fc-ct" id="fc-ct"></div>
+    <div class="fc-acts">
+      <button class="fc-btn again" onclick="markFC(false)">🔄 Again</button>
+      <button class="fc-btn got" onclick="markFC(true)">✅ Got It!</button>
+    </div>
+    <div class="fc-done" id="fc-done">
+      <h3>🎉 Deck Done!</h3>
+      <p id="fc-msg"></p>
+      <button class="fc-restart" onclick="restartFC()">Restart</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="sum">
+  <h3>✅ Lesson 3 — Key Takeaways</h3>
+  <div class="sum-g">
+    <div class="si"><strong>Somatic vs. Germ Line</strong>Somatic mutation = affects only the individual, can cause cancer, NOT inherited. Germ line mutation = can be inherited by ALL cells of the offspring.</div>
+    <div class="si"><strong>Point Mutation</strong>Changes ONE nucleotide. May be silent, change one amino acid, or create a stop codon. Example: GAG → GUG = sickle cell anemia.</div>
+    <div class="si"><strong>Frameshift Mutation</strong>Insertion or deletion of nucleotide(s) — shifts reading frame for ALL codons downstream. Usually more damaging than point mutations.</div>
+    <div class="si"><strong>Chromosome Mutations</strong>Affect large segments or chromosome number. Nondisjunction (fail to separate) → wrong chromosome number → Down syndrome (Trisomy 21).</div>
+    <div class="si"><strong>Pedigree Reading</strong>1) Check sex ratio (X-linked if mostly males). 2) Two unaffected parents → affected child = recessive. 3) Appears every generation = dominant.</div>
+    <div class="si"><strong>X-linked Clue</strong>Affected fathers CANNOT pass X-linked trait to sons (sons get Y from dad). This is the most reliable clue for X-linked inheritance.</div>
+  </div>
+</div>
+</div>
+
+<script>
+(()=>{const d=Math.ceil((new Date('2026-04-08')-new Date())/864e5);document.getElementById('dl').textContent=d>0?d:0;})();
+
+// MCQ
+const QS=[
+  {q:"A mutation occurs in a liver cell of a 35-year-old person. This mutation could potentially cause cancer in that person. Could this person's children inherit this mutation?",opts:["Yes — any mutation can be inherited","No — somatic cell mutations are not passed to offspring because liver cells never become eggs or sperm","Only if the mutation is a frameshift","Only if it happens in the nucleus"],ans:1,
+   fb:{c:"✅ Correct! Liver cells are somatic (body) cells. They divide by mitosis and their mutations stay within that individual's body. Since liver cells never become gametes (eggs or sperm), the mutation cannot be passed to children.",
+   w:["Not all mutations can be inherited — only germ line mutations (those in cells that produce gametes) can be inherited. Mutations in somatic cells, like liver cells, only affect the individual and are never passed to offspring.","Whether it's a frameshift or substitution doesn't determine inheritability — the type of CELL matters, not the type of mutation. Since this is in a liver (somatic) cell, children cannot inherit it regardless of mutation type.","All mutations happen in the nucleus (since DNA is in the nucleus), but that doesn't make them inheritable. The determining factor is whether the mutation is in a gamete-producing (germ line) cell, not where in the cell it occurs."]}},
+  {q:"Consider the DNA sequence ATCGACTTAG. If the 4th nucleotide (G) is deleted, what type of mutation is this and what is the expected impact?",opts:["Point mutation — only one amino acid will change","Frameshift mutation — every codon from position 4 onward is altered, likely producing a non-functional protein","Chromosome mutation — entire segments are rearranged","Silent mutation — no change in protein because of the redundancy of the genetic code"],ans:1,
+   fb:{c:"✅ Exactly right! Deleting one nucleotide is a frameshift mutation. The reading frame shifts for EVERY codon after the deletion point — instead of one wrong amino acid, you get completely scrambled codons from that point onward. The resulting protein is almost certainly non-functional.",
+   w:["A point mutation is a SUBSTITUTION — swapping one nucleotide for a different nucleotide. A deletion of a nucleotide causes a frameshift, not a simple point mutation. The effect of a frameshift goes far beyond changing one amino acid.","Chromosome mutations affect large segments of chromosomes — entire blocks of genes being duplicated, deleted, inverted, or translocated. The deletion of a single nucleotide is a gene-level mutation (frameshift), not a chromosome mutation.","Silent mutations occur when a substitution doesn't change the amino acid due to the redundancy of the genetic code. A deletion that causes a frameshift will alter every codon downstream — this is not silent by any stretch."]}},
+  {q:"In a pedigree, you observe that the trait appears in every single generation, affects males and females equally, and unaffected individuals NEVER have affected children. What inheritance pattern is this?",opts:["Autosomal recessive","Autosomal dominant","X-linked recessive","X-linked dominant"],ans:1,
+   fb:{c:"✅ Perfect! The key clues for autosomal dominant are: (1) appears in every generation without skipping, (2) both sexes equally affected (autosomal, not sex-linked), (3) unaffected individuals cannot have affected children (because if they don't have the dominant allele, they can't pass it on). Huntington's disease follows this pattern.",
+   w:["Autosomal recessive traits SKIP generations — carriers are unaffected. This pedigree shows the trait in EVERY generation, which rules out recessive. With recessive inheritance, unaffected parents CAN have affected children (both being carriers). That's not happening here.","X-linked recessive would show FAR MORE males affected than females, and affected fathers would NOT pass the trait to sons. This pedigree shows equal sex distribution and appears every generation — both of which point against X-linked recessive.","X-linked dominant is rare and would show that affected fathers pass the trait to ALL daughters (since daughters always inherit dad's X). The pattern here — affecting both sexes in every generation — is more consistent with autosomal dominant, though X-linked dominant is technically possible."]}},
+  {q:"A pedigree shows: many more affected males than females, the trait skips generations, and an affected father's sons are all unaffected. What is the most likely inheritance pattern?",opts:["Autosomal dominant","Autosomal recessive","X-linked recessive","Polygenic"],ans:2,
+   fb:{c:"✅ Correct! All three clues point to X-linked recessive: (1) far more males affected than females (males only need ONE recessive X allele), (2) trait skips generations through carrier females who appear unaffected, (3) affected fathers cannot pass it to sons because sons get the Y chromosome from dad — confirming it's on the X.",
+   w:["Autosomal dominant would appear in EVERY generation (no skipping), affect both sexes equally, and affected parents would always pass it to ~50% of children regardless of sex. None of those match the description given.","Autosomal recessive would affect both sexes equally — there's no reason for males to be more affected if it's autosomal. The sex imbalance in this pedigree is the critical clue that something special is happening with the sex chromosomes.","Polygenic inheritance produces a continuous spectrum of phenotypes (many intermediate values) — it doesn't produce the clear affected/unaffected pattern described in a pedigree with skipping generations. Polygenic traits are harder to trace in pedigree format."]}},
+];
+let qs=[];
+function buildMCQ(){const el=document.getElementById('mcq');QS.forEach((q,qi)=>{qs.push(false);el.innerHTML+=`<div class="mcq-card"><div class="mcq-q"><span class="qn">Q${qi+1}</span>${q.q}</div><div class="mcq-opts">${q.opts.map((o,oi)=>`<button class="opt" id="o${qi}_${oi}" onclick="pick(${qi},${oi})"><span class="ltr">${'ABCD'[oi]}</span><span>${o}</span></button>`).join('')}</div><div class="fb" id="fb${qi}"></div></div>`;});}
+function pick(qi,oi){if(qs[qi])return;qs[qi]=true;const q=QS[qi];document.querySelectorAll(`[id^="o${qi}_"]`).forEach(b=>b.classList.add('locked'));const fb=document.getElementById('fb'+qi);if(oi===q.ans){document.getElementById(`o${qi}_${oi}`).classList.add('correct');fb.className='fb show correct';fb.innerHTML=`<div class="fb-h">✅ Correct!</div>${q.fb.c}`;}else{document.getElementById(`o${qi}_${oi}`).classList.add('wrong');document.getElementById(`o${qi}_${q.ans}`).classList.add('correct');fb.className='fb show wrong';fb.innerHTML=`<div class="fb-h">❌ Not quite</div>${q.fb.w[oi]}`;}}
+
+// PEDIGREE QS
+const pedAnswers=[
+  {q:'pq1',ans:2,correct:"✅ Both sexes are affected (II-3 is an affected male; III-1 is an affected female). Equal sex distribution suggests the trait is AUTOSOMAL, not X-linked.",wrong:["Not quite — while there is an affected male (II-3), there is also an affected female (III-1). When both sexes are affected, the trait is more likely autosomal.","There is one affected female (III-1), but there is also one affected male (II-3). Both sexes are represented — suggesting autosomal inheritance."]},
+  {q:'pq2',ans:1,correct:"✅ Exactly! Two unaffected parents with an affected child is the DEFINING CLUE for autosomal recessive. The parents must both be carriers (Rr × Rr) who happened to both pass their r allele to this child.",wrong:["Autosomal dominant would mean the trait appears in EVERY generation. But Generation I parents are UNAFFECTED — if the trait were dominant, an affected child could only come from an affected parent. Unaffected parents having an affected child = recessive.","For X-linked, the clue would be the affected child being male and there being far more males affected. Also, X-linked recessive wouldn't come from an unaffected father — the father would have to be a carrier, but males can't be carriers for X-linked traits."]},
+  {q:'pq3',ans:1,correct:"✅ Correct! Since I-1 is unaffected but has an affected child, he cannot be rr (he'd be affected himself). He cannot be RR because then he couldn't pass an r allele to his child. He MUST be Rr (a carrier who passes the r allele to his child alongside an r from I-2).",wrong:["If I-1 were RR, he could only pass R alleles to his children. An RR × ? cross cannot produce an rr child — so this genotype is impossible given the pedigree evidence.","If I-1 were rr, he would be AFFECTED — but the pedigree shows him as unaffected (empty square). An rr individual would show the recessive trait."]},
+  {q:'pq4',ans:1,correct:"✅ Right! Only males are affected in this pedigree (the affected individuals are all filled squares = males). The half-filled circle (I-2) indicates she is a CARRIER — she carries the allele but is not affected. This sex imbalance strongly suggests X-linked inheritance.",wrong:["Look carefully at the filled shapes. All FILLED shapes are squares (males). The half-filled circle (I-2) indicates a carrier female — she carries the allele but is not affected. No females are actually affected.","The filled (affected) shapes are ALL squares (males). Females appear either unaffected or as carriers. This is NOT equal distribution — it strongly suggests X-linked inheritance where males are more easily affected."]},
+  {q:'pq5',ans:1,correct:"✅ This is the KEY diagnostic clue for X-linked inheritance! Males inherit their X chromosome from their MOTHER and their Y from their FATHER. An affected father with genotype X^b Y passes his Y to sons — not his X^b. So sons cannot inherit the X-linked trait from their father. For autosomal traits, an affected father (Dd) would pass D to ~50% of sons.",wrong:["Autosomal dominant traits do NOT typically skip generations — if a parent has the dominant allele, about 50% of children should show it. But this scenario specifically shows an affected father whose son is completely unaffected, which IS the key clue — for X-linked traits, this is expected (father passes Y to son, not his X).",  "Mutations cancelling out is not how inheritance works. The unaffected son in this pedigree is simply expected if the trait is X-linked recessive — the son received the Y chromosome from his father (not the X with the recessive allele) and therefore has no way to express the trait."]},
+];
+const pedAnswered={};
+function pedAns(qid,oi){
+  if(pedAnswered[qid])return;
+  pedAnswered[qid]=true;
+  const pd=pedAnswers.find(p=>p.q===qid);
+  const opts=document.querySelectorAll(`#${qid} .ped-opt`);
+  opts.forEach(o=>o.classList.add('locked'));
+  const fb=document.getElementById('pfb'+qid.replace('pq',''));
+  if(oi===pd.ans){opts[oi].classList.add('correct');fb.className='ped-fb show correct';fb.textContent=pd.correct;}
+  else{opts[oi].classList.add('wrong');opts[pd.ans].classList.add('correct');fb.className='ped-fb show wrong';fb.textContent=pd.wrong[oi];}
+}
+
+// FLASHCARDS
+const CARDS=[
+  {t:"Mutation",d:"Any permanent change in the DNA sequence (the order of nucleotide bases).",e:"Can be caused by replication errors, mutagens, or viruses"},
+  {t:"Somatic Mutation",d:"A mutation in a body (somatic) cell. Passed on by mitosis. Can cause cancer. CANNOT be inherited by offspring.",e:"Skin cell mutation from UV exposure → stays in that individual"},
+  {t:"Germ Line Mutation",d:"A mutation in a gamete-producing cell. Passed on by meiosis. CAN be inherited — every cell of the offspring carries it.",e:"Mutation in a sperm cell → inherited by all cells of the offspring"},
+  {t:"Mutagen",d:"An agent that causes mutations in DNA.",e:"UV light, radiation, cigarette smoke, certain chemicals"},
+  {t:"Point Mutation",d:"A change in a single nucleotide — usually a substitution (one base swapped for another).",e:"GAG → GUG causes sickle cell anemia — one nucleotide change, one amino acid change"},
+  {t:"Frameshift Mutation",d:"An insertion or deletion of nucleotide(s) that shifts the reading frame for ALL codons downstream.",e:"Like removing a letter from a sentence: 'THE CAT SAT' → 'TEC ATS AT...' — complete nonsense"},
+  {t:"Chromosome Mutation",d:"A large-scale change to chromosome structure or number (duplication, translocation, nondisjunction).",e:"Down syndrome = Trisomy 21 (3 copies of chromosome 21) from nondisjunction"},
+  {t:"Nondisjunction",d:"Failure of chromosomes to separate properly during meiosis. Results in gametes with wrong chromosome number.",e:"Gamete gets 2 copies of chromosome 21 → fertilized egg has 3 copies → Trisomy 21"},
+  {t:"Pedigree",d:"A diagram used to trace inheritance of a trait or disease through a family across multiple generations.",e:"Used by genetic counselors to determine if a trait is dominant/recessive, autosomal/sex-linked"},
+  {t:"Autosomal Recessive",d:"Trait on an autosome; two recessive alleles needed to show the trait; can skip generations; both sexes equally affected.",e:"Cystic fibrosis, Sickle cell anemia, PKU, Tay-Sachs"},
+  {t:"Autosomal Dominant",d:"Trait on an autosome; ONE dominant allele causes the trait; appears in every generation; both sexes affected; unaffected parents cannot have affected children.",e:"Huntington's disease, Achondroplasia"},
+  {t:"X-linked Recessive",d:"Trait on the X chromosome; males need only ONE copy to be affected; trait skips generations; affected fathers CANNOT pass to sons.",e:"Hemophilia, Color blindness, Duchenne Muscular Dystrophy"},
+  {t:"Carrier (pedigree)",d:"An individual who is heterozygous for a recessive trait — unaffected themselves but can pass the allele to children.",e:"Represented as half-filled shape in pedigrees for sex-linked traits"},
+  {t:"Trisomy 21",d:"A condition where a person has THREE copies of chromosome 21 instead of two. Caused by nondisjunction during meiosis.",e:"Also known as Down Syndrome"},
+];
+let deck=[],known=[],cur=0;
+function initFC(){deck=[...Array(CARDS.length).keys()];known=new Array(CARDS.length).fill(null);cur=0;dots();showFC();document.getElementById('fc-done').style.display='none';document.getElementById('fc').style.display='block';document.querySelector('.fc-acts').style.display='flex';document.querySelector('.fc-hint').style.display='block';document.getElementById('fc-ct').style.display='block';}
+function dots(){const el=document.getElementById('fc-dots');el.innerHTML='';CARDS.forEach((_,i)=>{const d=document.createElement('div');d.className='fc-dot'+(known[i]===true?' known':known[i]===false?' studying':'');el.appendChild(d);});}
+function showFC(){if(!deck.length){doneFCs();return;}const c=CARDS[deck[cur%deck.length]];document.getElementById('fc-t').textContent=c.t;document.getElementById('fc-d').textContent=c.d;document.getElementById('fc-e').textContent=c.e||'';document.getElementById('fc-ct').textContent=`Card ${(cur%deck.length)+1} of ${deck.length}`;document.getElementById('fc').classList.remove('flipped');}
+function flipFC(){document.getElementById('fc').classList.toggle('flipped');}
+function markFC(ok){if(!deck.length)return;const ci=deck[cur%deck.length];known[ci]=ok;if(ok)deck=deck.filter(i=>i!==ci);else cur++;dots();if(!deck.length){doneFCs();return;}cur=cur%deck.length;showFC();}
+function doneFCs(){document.getElementById('fc-done').style.display='block';document.getElementById('fc').style.display='none';document.querySelector('.fc-acts').style.display='none';document.querySelector('.fc-hint').style.display='none';document.getElementById('fc-ct').style.display='none';document.getElementById('fc-msg').textContent=`You mastered ${known.filter(k=>k===true).length} of ${CARDS.length} terms! Keep drilling the tricky ones before April 8.`;}
+function restartFC(){initFC();}
+
+buildMCQ();initFC();
+</script>
+
+<!-- ══ GLOSSARY DRAWER ══ -->
+<style>
+
+/* ── GLOSSARY DRAWER ── */
+.gloss-fab{position:fixed;bottom:24px;right:24px;z-index:500;width:56px;height:56px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.22);transition:transform .2s,box-shadow .2s}
+.gloss-fab:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(0,0,0,.28)}
+.gloss-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:501;opacity:0;pointer-events:none;transition:opacity .25s}
+.gloss-overlay.open{opacity:1;pointer-events:all}
+.gloss-drawer{position:fixed;bottom:0;right:0;width:min(480px,100vw);height:80vh;border-radius:20px 20px 0 0;z-index:502;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);overflow:hidden;box-shadow:0 -8px 40px rgba(0,0,0,.2)}
+.gloss-drawer.open{transform:translateY(0)}
+.gloss-header{padding:18px 20px 14px;flex-shrink:0;display:flex;align-items:center;gap:12px}
+.gloss-header h3{font-size:17px;font-weight:700;flex:1}
+.gloss-close{width:32px;height:32px;border-radius:50%;border:none;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.08)}
+.gloss-search-wrap{padding:0 16px 12px;flex-shrink:0}
+.gloss-search{width:100%;padding:10px 14px 10px 36px;border-radius:10px;border:2px solid transparent;font-size:14px;font-family:inherit;transition:border-color .15s;outline:none}
+.gloss-search-icon{position:absolute;left:28px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none}
+.gloss-search-rel{position:relative}
+.gloss-filter-row{padding:0 16px 12px;display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0}
+.gloss-filter{padding:5px 12px;border-radius:20px;border:1.5px solid;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;font-family:inherit}
+.gloss-body{flex:1;overflow-y:auto;padding:0 8px 16px}
+.gloss-group-label{padding:8px 12px 4px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;font-family:monospace;position:sticky;top:0}
+.gloss-item{padding:12px 14px;margin:3px 4px;border-radius:10px;cursor:pointer;transition:background .12s;border:1px solid transparent}
+.gloss-item:hover{border-color:rgba(0,0,0,.08)}
+.gloss-term{font-size:14px;font-weight:700;margin-bottom:4px}
+.gloss-def{font-size:13.5px;line-height:1.55}
+.gloss-ex{font-size:12px;font-style:italic;margin-top:3px}
+.gloss-badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:99px;font-weight:700;font-family:monospace;margin-left:6px;letter-spacing:.3px}
+.gloss-empty{text-align:center;padding:40px 20px;font-size:14px}
+.gloss-count{font-size:11px;font-family:monospace;padding:3px 9px;border-radius:99px;font-weight:700}
+
+.gloss-drawer{background:#F8F5FF}
+.gloss-header{background:#5535A3;color:#fff}
+.gloss-header h3{color:#fff}
+.gloss-close{color:#fff;background:rgba(255,255,255,.15)}
+.gloss-close:hover{background:rgba(255,255,255,.25)}
+.gloss-search{background:#fff;color:#0F1B2D;font-family:inherit}
+.gloss-search:focus{border-color:#5535A3}
+.gloss-group-label{color:#5535A3;background:transparent}
+.gloss-item:hover{background:rgba(0,0,0,.04)!important}
+</style>
+
+<button class="gloss-fab" id="gloss-fab" onclick="openGloss()" title="Open Glossary">📖</button>
+<div class="gloss-overlay" id="gloss-overlay" onclick="closeGloss()"></div>
+<div class="gloss-drawer" id="gloss-drawer">
+  <div class="gloss-header">
+    <h3 id="gloss-title">Lesson 3 Glossary</h3>
+    <span class="gloss-count" id="gloss-count"></span>
+    <button class="gloss-close" onclick="closeGloss()">✕</button>
+  </div>
+  <div class="gloss-search-wrap">
+    <div class="gloss-search-rel">
+      <span class="gloss-search-icon">🔍</span>
+      <input class="gloss-search" id="gloss-search" type="text" placeholder="Search terms..." oninput="renderGloss()" autocomplete="off">
+    </div>
+  </div>
+  <div class="gloss-filter-row" id="gloss-filters"></div>
+  <div class="gloss-body" id="gloss-body"></div>
+</div>
+
+<script>
+const GLOSS_FAB_BG="#5535A3";
+const GLOSS_INK="#0F1B2D";
+const GLOSS_MUTED="#6B7280";
+const GLOSS_GROUPS={"mutations":{label:'Types of Mutations',short:'Mutations',color:'#5535A3',bg:'#EDE7F6',terms:[{term:'Mutation',def:'Any permanent change in the DNA sequence (the order of nucleotide bases). Can be neutral, harmful, or beneficial.',ex:'Can be caused by replication errors, UV light, radiation, or viruses'},{term:'Mutagen',def:'Any agent that causes mutations in DNA.',ex:'UV light, ionizing radiation, cigarette smoke, certain chemicals'},{term:'Point Mutation',def:'A change in a SINGLE nucleotide — usually a substitution (one base swapped for another).',ex:'GAG → GUG causes sickle cell anemia — one nucleotide, one amino acid change'},{term:'Frameshift Mutation',def:'Insertion or deletion of nucleotide(s) — SHIFTS THE READING FRAME for ALL codons downstream. Usually more damaging than point mutations.',ex:"Like removing one letter from 'THE CAT SAT' → 'TEC ATS AT...' — complete scramble"},{term:'Substitution',def:'A type of point mutation where one nucleotide base is swapped for a different one.',ex:'Can be silent (same amino acid), missense (different amino acid), or nonsense (stop codon)'},{term:'Chromosome Mutation',def:'A large-scale change to chromosome STRUCTURE or NUMBER (nondisjunction, translocation, inversion, duplication).',ex:'Down syndrome = Trisomy 21 (extra copy of chromosome 21)'},{term:'Nondisjunction',def:'Failure of chromosomes to separate properly during meiosis → gametes with wrong chromosome number.',ex:'Gamete gets 2 copies of chr.21 → fertilized egg has 3 copies → Trisomy 21'}]},"celltype":{label:'Somatic vs. Germ Line',short:'Cell Type',color:'#1A6B3C',bg:'#E6F4EA',terms:[{term:'Somatic Cell',def:'Any body cell that is NOT a gamete. Mutations in somatic cells are NOT inherited by offspring — they stay within that individual.',ex:'Skin cell, liver cell, neuron — mutations can cause cancer but not inherited'},{term:'Somatic Mutation',def:'A mutation in a body (somatic) cell. Can cause cancer in that individual. CANNOT be passed to offspring.',ex:'UV-caused skin cell mutation → stays in that person, not heritable'},{term:'Gamete',def:'A reproductive cell (egg or sperm). Contains only ONE allele per gene (haploid).',ex:'Egg and sperm — fuse at fertilization to create diploid offspring'},{term:'Germ Line Mutation',def:'A mutation in a gamete or gamete-producing cell. IS inherited — every cell of the offspring carries it.',ex:'Mutation in a sperm cell → all cells of the child carry the mutation'}]},"pedigree":{label:'Pedigrees & Patterns',short:'Pedigrees',color:'#9B1C1C',bg:'#FFF0F0',terms:[{term:'Pedigree',def:'A chart that traces the inheritance of a trait or disease through a family across multiple generations.',ex:'Squares = males; circles = females; filled = affected; half-filled = carrier'},{term:'Autosomal Recessive',def:'Trait on autosome; TWO recessive alleles needed; can SKIP generations; both sexes equally affected; two unaffected parents CAN have affected child.',ex:'Cystic fibrosis, sickle cell anemia, PKU, Tay-Sachs'},{term:'Autosomal Dominant',def:'Trait on autosome; ONE dominant allele causes trait; appears EVERY generation; both sexes affected; unaffected individuals NEVER have affected children.',ex:"Huntington's disease, achondroplasia"},{term:'X-linked Recessive (pedigree)',def:"On X chromosome; far MORE MALES affected; skips generations through carrier females; affected father's SONS are unaffected (sons get Y, not dad's X).",ex:'Hemophilia, color blindness, Duchenne MD'},{term:'Carrier (pedigree)',def:'Heterozygous individual who is unaffected but can pass the recessive allele. Shown as half-filled circle in sex-linked pedigrees.',ex:'X^B X^b female — shown as half-filled circle'},{term:'Trisomy 21',def:'Three copies of chromosome 21 instead of two. Caused by nondisjunction during meiosis. Also called Down syndrome.',ex:'Most common chromosomal cause of intellectual disability'}]}};
+
+function openGloss(){document.getElementById('gloss-overlay').classList.add('open');document.getElementById('gloss-drawer').classList.add('open');document.getElementById('gloss-search').focus();}
+function closeGloss(){document.getElementById('gloss-overlay').classList.remove('open');document.getElementById('gloss-drawer').classList.remove('open');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeGloss();});
+
+let glossActiveFilter='all';
+
+function initGloss(){
+  const fc=document.getElementById('gloss-filters');
+  const filters=[{id:'all',label:'All Terms'},...Object.keys(GLOSS_GROUPS).map(g=>({id:g,label:GLOSS_GROUPS[g].label}))];
+  fc.innerHTML=filters.map(f=>`<button class="gloss-filter" style="background:${f.id==='all'?GLOSS_FAB_BG:'rgba(0,0,0,.06)'};color:${f.id==='all'?'#fff':GLOSS_INK};border-color:${f.id==='all'?GLOSS_FAB_BG:'transparent'}" id="gf-${f.id}" onclick="setGlossFilter('${f.id}')">${f.label}</button>`).join('');
+  document.getElementById('gloss-fab').style.background=GLOSS_FAB_BG;
+  document.getElementById('gloss-count').style.background=GLOSS_FAB_BG+'22';
+  document.getElementById('gloss-count').style.color=GLOSS_FAB_BG;
+  renderGloss();
+}
+
+function setGlossFilter(f){
+  glossActiveFilter=f;
+  document.querySelectorAll('.gloss-filter').forEach(b=>{
+    const isActive=b.id==='gf-'+f;
+    b.style.background=isActive?GLOSS_FAB_BG:'rgba(0,0,0,.06)';
+    b.style.color=isActive?'#fff':GLOSS_INK;
+    b.style.borderColor=isActive?GLOSS_FAB_BG:'transparent';
+  });
+  renderGloss();
+}
+
+function renderGloss(){
+  const q=document.getElementById('gloss-search').value.toLowerCase().trim();
+  const body=document.getElementById('gloss-body');
+  let html='',count=0;
+  Object.entries(GLOSS_GROUPS).forEach(([gid,group])=>{
+    if(glossActiveFilter!=='all'&&glossActiveFilter!==gid)return;
+    const items=group.terms.filter(t=>!q||(t.term+' '+t.def+(t.ex||'')).toLowerCase().includes(q));
+    if(!items.length)return;
+    html+=`<div class="gloss-group-label" style="color:${group.color};background:${group.bg}">${group.label}</div>`;
+    items.forEach(t=>{
+      count++;
+      html+=`<div class="gloss-item" style="background:${group.bg}22">
+        <div class="gloss-term" style="color:${group.color}">${t.term}<span class="gloss-badge" style="background:${group.bg};color:${group.color}">${group.short}</span></div>
+        <div class="gloss-def" style="color:${GLOSS_INK}">${t.def}</div>
+        ${t.ex?`<div class="gloss-ex" style="color:${GLOSS_MUTED}">e.g. ${t.ex}</div>`:''}
+      </div>`;
+    });
+  });
+  if(!count)html=`<div class="gloss-empty" style="color:${GLOSS_MUTED}">No terms match "<strong>${q}</strong>"</div>`;
+  body.innerHTML=html;
+  document.getElementById('gloss-count').textContent=count+' terms';
+}
+
+initGloss();
+
+</script>
+
+</body>
+</html>
